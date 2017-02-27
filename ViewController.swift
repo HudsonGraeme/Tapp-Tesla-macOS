@@ -2,9 +2,8 @@
 //  ViewController.swift
 //  Tapp
 //
-//  Created by s on 2017-01-06.
-//  Copyright © 2017 Carspotter Daily. All rights reserved.
-//
+//  Created by Hudson Graeme on 2017-01-06.
+// Open Source
 
 import Cocoa
 

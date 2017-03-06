@@ -1,0 +1,290 @@
+FORMAT: 1A
+HOST: https://owner-api.teslamotors.com
+
+# Updated Tesla JSON API
+Another unofficial Tesla API blueprint.
+
+##  Authentication [/oauth/token{?grant_type,client_id,client_secret,email,password}]
+
+### Access Token [POST]
+token type MUST be capitalized when used as the authorization header("Bearer: or Basic:" depending on the type)
++ Parameters
+    + grant_type (required, string, `password`) ... Always equals 'password'
+    + client_id (required, number, `1`) ... constant
+    + client_secret (required, number, `1`) ... constant
+    + email (required, string, `foo@bar.com`)
+    + password (required, string, `ludicrous`)
+
++ Response 200 (application/json)
+
+        [
+            {
+                "expires_in" : 12345678,
+                "refresh_token" : "1234567890",
+                "token_type" : "bearer or basic",
+                "access_token" : "1234567890",
+                "created_at" : 1234567890
+            }
+        ]
+
+        + Response 401 (application/json)
+
+        [
+            {
+               "error_description" : "The provided authorization grant is invalid, expired, revoked, does not match the redirection URI used in the authorization request, or was issued to another client.",
+                "error" : "invalid_grant" 
+            }
+        ]
+        This returns if any of the parameters are left blank or login info is invalid.
+
+        + Response 404 (application/json)
+        Either you have messed up the URL, or Tesla's servers are down.
+
+        + Response 400 (application/json)
+        {
+            "response" : "{\"message\"=>\"object_reference_not_set_to_an_instance_of_an_object.\",_\"stacktrace\"=>\"___at_myteslawebservice.controllers.authenticationcontroller.<authenticate>d__1.movenext"
+        }   }
+        Wierd, right? This means that only one parameter is missing a value
+
+## Get a list of Vehicles [/api/1/vehicles]
+
+###Get Vehicles [GET]
+Find out how many vehicles one owns and get at the vehicle id for future use.
+
++ Response 200 (application/json)
+
+            {
+             "response" : [
+                    {
+                    "id" : 12345678901234567,
+                    "state" : "online",
+                    "backseat_token" : null,
+                    "remote_start_enabled" : true,
+                    "in_service" : false,
+                    "vin" : "1A2BC3DE45GH678901",
+                    "color" : null,
+                    "vehicle_id" : 1234567890,
+                    "display_name" : "32",
+                    "notifications_enabled" : true,
+                    "tokens" : [
+                                "abc1de23fghi4j56",
+                                "a1234b5cd67ef8fg"
+                                ],
+                    "backseat_token_updated_at" : null,
+                    "id_s" : "12345678901234567",
+                    "calendar_enabled" : true,
+                    "option_codes" : ""
+                    }
+                ],
+                "count" : 1 
+            }
+    
+## Vehicle Data [/api/vehicles/{vehicleid}/data]
+
+### Retreive all vehicle data [GET]
+Get data
+
++ Response 200 (application/json)
+
+        "response" : {
+            "color" : null,
+            "remote_start_enabled" : true,
+            "vehicle_id" : 1234567890,
+            "gui_settings" : {
+                "gui_distance_units" : "km\/hr",
+                "gui_charge_rate_units" : "km\/hr",
+                "timestamp" : 1,
+                "gui_temperature_units" : "C",
+                "gui_24_hour_time" : true,
+                "gui_range_display" : "Rated"
+            },
+            "user_id" : 12345,
+        "backseat_token" : null,
+        "notifications_enabled" : true,
+        "vehicle_config" : {
+            "spoiler_type" : "None",
+            "roof_color" : "None",
+            "perf_config" : "P1",
+            "seat_type" : 0,
+            "exterior_color" : "TitaniumWhite",
+            "car_special_type" : "Falcon9",
+            "sun_roof_installed" : 1,
+            "timestamp" : 1,
+            "trim_badging" : "p100d",
+            "wheel_type" : "Base19",
+            "motorized_charge_port" : true,
+            "car_type" : "s",
+            "eu_vehicle" : false,
+            "rear_seat_type" : 0,
+            "rear_seat_heaters" : 1,
+            "rhd" : false,
+            "third_row_seats" : "None",
+            "has_ludicrous_mode" : true
+        },
+        "climate_state" : {
+            "seat_heater_left" : 0,
+            "fan_status" : 1,
+            "is_front_defroster_on" : 3,
+            "is_rear_defroster_on" : false,
+            "is_climate_on" : true,
+            "seat_heater_rear_left" : 0,
+            "min_avail_temp" : 15,
+            "inside_temp" : 22.1,
+            "driver_temp_setting" : 26,
+            "passenger_temp_setting" : 26,
+            "outside_temp" : -5.5,
+            "seat_heater_rear_center" : 0,
+            "timestamp" : 1,
+            "right_temp_direction" : 259,
+            "left_temp_direction" : 259,
+            "seat_heater_rear_right" : 0,
+            "seat_heater_rear_right_back" : 0,
+            "seat_heater_right" : 3,
+            "seat_heater_rear_left_back" : 0,
+            "smart_preconditioning" : false,
+            "max_avail_temp" : 28,
+            "is_auto_conditioning_on" : false
+        },
+        "vehicle_state" : {
+            "exterior_color" : "TitaniumWhite",
+            "center_display_state" : 4,
+            "autopark_style" : "dead_man",
+            "remote_start" : false,
+            "odometer" : 1000000,
+            "rt" : 0,
+            "sun_roof_percent_open" : 0,
+            "vehicle_name" : "32",
+            "remote_start_supported" : true,
+            "dark_rims" : false,
+            "locked" : true,
+            "rear_seat_type" : 0,
+            "rhd" : false,
+            "autopark_state_v2" : "standby",
+            "roof_color" : "None",
+            "rear_seat_heaters" : 1,
+            "valet_mode" : false,
+            "parsed_calendar_supported" : true,
+            "api_version" : 3,
+            "homelink_nearby" : false,
+            "autopark_state" : "unavailable",
+            "last_autopark_error" : "no_error",
+            "dr" : 0,
+            "has_spoiler" : false,
+            "calendar_supported" : true,
+            "sun_roof_state" : "closed",
+            "df" : 0,
+            "valet_pin_needed" : true,
+            "pr" : 0,
+            "spoiler_type" : "None",
+            "car_type" : "s",
+            "perf_config" : "P1",
+            "car_version" : "",
+            "seat_type" : 0,
+            "third_row_seats" : "None",
+            "ft" : 0,
+            "notifications_supported" : true,
+            "pf" : 0,
+            "wheel_type" : "Base19",
+            "sun_roof_installed" : 1,
+            "timestamp" : 1
+        },
+        "vin" : "",
+        "option_codes" : "",
+        "state" : "online",
+        "id_s" : "",
+        "id" : ,
+        "calendar_enabled" : true,
+        "backseat_token_updated_at" : null,
+        "charge_state" : {
+            "fast_charger_type" : "<invalid>",
+            "timestamp" : 1,
+            "est_battery_range" : mars,
+            "user_charge_enable_request" : null,
+            "charge_energy_added" : 24.6gigawatts,
+            "charge_current_request_max" : 40,
+            "charger_phases" : null,
+            "fast_charger_present" : false,
+            "battery_heater_on" : false,
+            "time_to_full_charge" : 0,
+            "motorized_charge_port" : true,
+            "trip_charging" : false,
+            "battery_range" : 134,
+            "charge_port_door_open" : false,
+            "charge_enable_request" : true,
+            "charge_limit_soc_std" : 90,
+            "charger_actual_current" : 0,
+            "charge_port_latch" : "Engaged",
+            "charge_current_request" : 40,
+            "charger_voltage" : 0,
+            "charge_port_led_color" : "Off",
+            "managed_charging_active" : false,
+            "charger_pilot_current" : 40,
+            "charge_rate" : 0,
+            "charge_limit_soc_max" : 100,
+            "charge_limit_soc_min" : 50,
+            "battery_current" : -77.5,
+            "usable_battery_level" : 50,
+            "ideal_battery_range" : 179.10,
+            "max_range_charge_counter" : 2,
+            "scheduled_charging_start_time" : null,
+            "charger_power" : 0,
+            "scheduled_charging_pending" : false,
+            "not_enough_power_to_heat" : false,
+            "managed_charging_start_time" : null,
+            "charge_miles_added_rated" : 85,
+            "battery_level" : 55,
+            "charge_to_max_range" : false,
+            "charge_miles_added_ideal" : 110,
+            "managed_charging_user_canceled" : false,
+            "charge_limit_soc" : 90,
+            "eu_vehicle" : false,
+            "charging_state" : "Disconnected"
+        },
+        "display_name" : "32",
+        "tokens" : [
+            "1234567890123456",
+            "1234567890123456"
+            ],
+        "drive_state" : {
+            "shift_state" : "D",
+            "speed" : 155,
+            "longitude" : 1,
+            "gps_as_of" : 1,
+            "power" : 700,
+            "latitude" : 2,
+            "heading" : 360,
+            "timestamp" : 1
+            },
+        "in_service" : false
+        }
+
+
+
+## Headlights [/command/flash_lights]
+
+### Flash lights [POST]
+
+Flash high beams while car is in park or off
+    + Headers
+    +Authorization: token_type: access_token
+
++ Request (application/json) 
+
+        {
+            
+        }
+
++ Response 200 
+
+    + Headers
+
+            Authorization: token_type: access_token
+
+    + Body
+
+            {
+                reason = ingear;
+                result = 0;
+            }
+
++ Response 200

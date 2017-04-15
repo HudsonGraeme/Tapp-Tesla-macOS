@@ -8,6 +8,6 @@ target 'Tapp' do
     pod 'AlamofireImage', '~> 3.1'
     pod 'TeslaSwift', '~> 3.3.6'
     pod 'ObjectMapper', '~> 2.2'
-    pod 'Starscream', '~> 2.0.3'
+    pod 'SwiftWebSocket'
     pod 'Charts', '~> 3.0'
 end

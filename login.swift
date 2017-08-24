@@ -16,17 +16,40 @@ import ObjectMapper
 import WebKit
 import SwiftWebSocket
 import Charts
+
 class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.Graph.noDataText = "Please Wait"
         self.outD.noDataText = "Please"
         self.inD.noDataText = "Wait"
+
+        if(UserDefaults.standard.string(forKey: "Token") != nil) {
+            ifTok()
+        }
 }
     
     
-    @IBOutlet weak var Graph: BarChartView!
-    @IBOutlet weak var gMap: WebView!
+
+    @IBOutlet weak var batLvl: NSTextField! // Battery level textbox
+    @IBOutlet weak var stndrd: NSButton! //Set charge level to 100%
+    @IBOutlet weak var trip: NSButton! //Set charge level to 90%
+    @IBOutlet weak var stp: NSButton! //Stop the custom alarm
+    @IBOutlet weak var Emerg: NSButton! //Custom alarm button
+    @IBOutlet weak var stCharg: NSButton! //Stop Charge
+    @IBOutlet weak var sCharg: NSButton! //Start Charging
+    @IBOutlet weak var openPort: NSButton! //Open Charge port
+    @IBOutlet weak var valetPIN: NSSecureTextField! //Valet PIN field
+    @IBOutlet weak var valetOnOff: NSSegmentedControl! //Valet mode on or off
+    @IBOutlet weak var valetRpin: NSButton! //Reset Valet PIN
+    @IBOutlet weak var logOut: NSButton! //Logout button
+    @IBOutlet weak var stayLogged: NSButton! //Stay logged in check
+    @IBOutlet weak var welcome: NSTextField! //Welcome text
+    @IBOutlet weak var tokenfield: NSTextField! //Field for entering user token
+    @IBOutlet weak var subtoken: NSButton! //Submits the above
+    @IBOutlet weak var Graph: BarChartView! //Battery graph
+    @IBOutlet weak var gMap: WebView! //The map webView
     @IBOutlet weak var rData: NSButton! //Refresh for location and other data
     @IBOutlet weak var curl: NSTextField! //dummy textfield
     @IBOutlet weak var lat: NSTextField! //Datafield
@@ -57,24 +80,10 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
     @IBOutlet weak var outD: BarChartView! //outside degrees chart
     @IBOutlet weak var inD: BarChartView! //inside degrees chart
     @IBOutlet weak var vehModd: NSTextField!
-    @IBOutlet weak var batSet: NSSlider!
-    @IBOutlet weak var batSettext: NSTextField!
-    @IBOutlet weak var alat: NSTextField!
-    @IBOutlet weak var long: NSTextField!
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    struct defaultsKeys {
-        static let accesstoken = ""
-    }
-    
+    @IBOutlet weak var batSet: NSSlider! //Charge level slider
+    @IBOutlet weak var batSettext: NSTextField! //Dummy field?
+    @IBOutlet weak var alat: NSTextField! // Dummy field
+    @IBOutlet weak var long: NSTextField! // Dummy field
     
     
     
@@ -86,13 +95,11 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
         let rdm = array[randomIndex]
         let options = self.imgtext.stringValue
         let model = self.carType.stringValue
-        let url = URL(string:"https://www.tesla.com/configurator/compositor/?model=m\(model)&view=STUD_\(rdm)&size=500&options=\(options)")
+        let url = URL(string:"https://www.tesla.com/configurator/compositor/?model=\(model)&view=STUD_\(rdm)&size=500&options=\(options)")
         let ncurr = url?.absoluteString
         self.curl.stringValue = ncurr!
         let request = Alamofire.request(url!).responseImage { response in
             let data = response.result.value
-            let defaults = UserDefaults.standard
-            print(defaults.string(forKey: defaultsKeys.accesstoken))
             self.vehimg.image = data
         }
     }
@@ -105,6 +112,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
         print(url)
         let request = Alamofire.request(url!).responseImage { response in
             let data = response.result.value
+            self.modelimg.isEnabled = true
             self.modelimg.image = data
             self.password.isHidden = true
             self.email.isHidden = true
@@ -144,6 +152,9 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                                         let vehMod = json["response"]["charge_limit_soc"]
                                     self.batSet.doubleValue = vehMod.doubleValue
                                         if(chargestate == "Charging") {
+                                            self.openPort.isEnabled = false
+                                            self.stCharg.isEnabled = true
+                                            self.sCharg.isEnabled = false
                                         let bCurrent = json["response"]["battery_current"]
                                         let hOn = json["response"]["battery_heater_on"]
                                         let lev = json["response"]["usable_battery_level"].doubleValue
@@ -200,6 +211,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                                         
                                     }
                                         else {
+                                            self.openPort.isEnabled = true
                                             let lev = json["response"]["usable_battery_level"].doubleValue
                                             if(lev == 99) {
                                                 let lev = 100
@@ -264,6 +276,12 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                 print("getcardata Response ", json)
                 let vehMod = json["response"]["vehicle_config"]["trim_badging"].stringValue
                 self.vehModd.stringValue = vehMod
+                if(json["response"]["vehicle_state"]["valet_mode"] == "true") {
+                    self.valetOnOff.selectedSegment = 0
+                }
+                else if(json["response"]["vehicle_state"]["valet_mode"] == "false") {
+                    self.valetOnOff.selectedSegment = 1
+                }
                 let isLocked = json["response"]["vehicle_state"]["locked"]
                 if(isLocked == "1"||isLocked == "true") {
                     self.lock.isEnabled = false
@@ -486,10 +504,11 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                             self.flash.isEnabled = true
                             self.tempSet.isEnabled = true
                             self.tempOff.isEnabled = true
-                            self.summonFwd.isEnabled = false
-                            self.summonBkwd.isEnabled = false
+                            self.summonFwd.isEnabled = true
+                            self.summonBkwd.isEnabled = true
                             self.summonStop.isEnabled = false
                             self.rData.isEnabled = true
+
                             
                         } else
                         {
@@ -596,7 +615,12 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                     
                     let chargestate = json["response"]["charging_state"]
                     let vehMod = json["response"]["charge_limit_soc"]
+                    self.batSet.doubleValue = vehMod.doubleValue
+                    self.batLvl.stringValue = "\(vehMod.doubleValue)%"
                     if(chargestate == "Charging") {
+                        self.openPort.isEnabled = false
+                        self.stCharg.isEnabled = true
+                        self.sCharg.isEnabled = false
                         let bCurrent = json["response"]["battery_current"]
                         let hOn = json["response"]["battery_heater_on"]
                         let lev = json["response"]["usable_battery_level"].doubleValue
@@ -605,12 +629,10 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                         let rCurrentMax = json["response"]["charge_current_request_max"]
                         let cEnableReq = json["response"]["charge_enable_request"]
                         let enAdded = json["response"]["charge_energy_added"]
-                        
                         let dOpen = json["response"]["charge_port_door_open"]
                         let cColour = json["response"]["charge_port_led_color"] //proper spelling
                         let Erange = json["response"]["est_battery_range"].doubleValue
-                        
-                        print("Charge State: ", chargestate, "\r\n", "Battery Current ", bCurrent, "\r\n", "Battery Heater is ", hOn, "\r\n","Battery Percent ", lev, "\r\n", "Rated Range ", range * 1.6, "\r\n", "Requested Current", rCurrent, "\r\n", "Max Current", rCurrentMax, "\r\n", "Enable request? ", cEnableReq, "\r\n", "Energy Added ", enAdded, "\r\n", "Charge limit ", vehMod, "\r\n", "Charge Port Door ", dOpen, "\r\n", "Charge Port Colour", cColour, "\r\n", "Estimated Range \(Erange * 1.6)km")
+                        print("Charge State: ", chargestate, "\r\n", "Battery Current ", bCurrent, "\r\n", "Battery Heater is ", hOn, "\r\n","Battery Percent ", lev, "\r\n", "Rated Range ", range * 1.6, "\r\n", "Requested Current", rCurrent, "\r\n", "Max Current", rCurrentMax, "\r\n", "Enable request? ", cEnableReq, "\r\n", "Energy Added ", enAdded, "\r\n", "Charge limit ", vehMod, "\r\n", "Charge Port Door ", dOpen, "\r\n", "Charge Port Colour", cColour, "\r\n", "Estimated Range ", Erange * 1.6)
                         
                         
                         
@@ -655,7 +677,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                         
                     }
                     else {
-                        
+                        self.openPort.isEnabled = true
                         let lev = json["response"]["usable_battery_level"].doubleValue
                         if(lev == 99) {
                             let lev = 100
@@ -691,12 +713,10 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                     print("getCharge defaulted")
                 }
                 
-                
-                
         }
         
+        }
         
-    }
 
     func gc() {
         
@@ -719,7 +739,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                 switch response.result {
                     
                 case .success:
-                    print("getClimate response: \(response)")
+                    print("gc response: \(response)")
                     
                     
                     let data = response.result.value
@@ -805,16 +825,52 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
         }
     }
     
-    
-
-    
-    
+    @IBAction func subtoken(_ sender: Any) {
+        self.tokenfield.isEditable = true
+        self.tokenn.stringValue = self.tokenfield.stringValue
+        self.login.isHidden = true
+        self.login.isEnabled = false
+        self.login.state = 0
+        if(self.stayLogged.state == 1) {
+        UserDefaults.standard.set(self.tokenfield.stringValue, forKey: "Token")
+        UserDefaults.standard.synchronize()
+        }
+        else {
+            print("user didn't save token, but submitted one")
+        }
+        self.subtoken.isEnabled = false
+        self.tokenfield.isEnabled = false
+        self.subtoken.isHidden = true
+        self.tokenfield.isHidden = true
+        self.subtoken.state = 0
+        self.getvehicle()
+        self.wakeup()
+    }
+    func ifTok() {
+        self.email.isHidden = true
+        self.password.isHidden = true
+        self.email.isEnabled = false
+        self.password.isEnabled = false
+        self.progind.isHidden = true
+        self.login.isHidden = true
+        self.login.isEnabled = false
+        self.login.state = 0
+        self.tokenn.stringValue = UserDefaults.standard.string(forKey: "Token")!
+        self.subtoken.isEnabled = false
+        self.tokenfield.isEnabled = false
+        self.subtoken.isHidden = true
+        self.tokenfield.isHidden = true
+        self.stndrd.isEnabled = true
+        self.trip.isEnabled = true
+        self.subtoken.state = 0
+        self.getvehicle()
+        self.wakeup()
+        self.logOut.isHidden = false
+    }
     @IBAction func login(_ sender: Any) {
         //login button pressed
-        let defaults = UserDefaults.standard
-        let token = defaults.string(forKey: defaultsKeys.accesstoken)
-        if(token == nil||token == "") {
-            print(token, " = 0")
+        if(UserDefaults.standard.string(forKey: "Token") == nil) {
+            print(UserDefaults.standard.string(forKey: "Token"), " = 0")
         self.lat.isSelectable = true
         let pass = self.password.stringValue //make the strings
         let mail = self.email.stringValue
@@ -823,16 +879,26 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
             self.vehName.textColor = NSColor.red
             self.vehName.stringValue = "Please enter your Email address"
         }
+            
         if (pass == "") {
             self.vehName.textColor = NSColor.red
             self.vehName.stringValue = "Please enter your Password"
             
         }
+                    
         if (mail == ""&&pass == "") {
             self.vehName.textColor = NSColor.red
             self.vehName.stringValue = "Please enter your MyTesla Username and Password"
             
         }
+        else {
+            self.subtoken.isEnabled = false
+            self.tokenfield.isEnabled = false
+            self.subtoken.isHidden = true
+            self.tokenfield.isHidden = true
+            self.subtoken.state = 0
+
+            }
         let url = URL(string: "https://owner-api.teslamotors.com/oauth/token?grant_type=password&client_id=81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384&client_secret=c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3&email=\(mail)&password=\(pass)")
         let task = Alamofire.request(url!, method: .post, parameters: nil, encoding: JSONEncoding.default, headers: nil)
             .responseJSON { response in
@@ -842,11 +908,14 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                 print(json)
                 
                 self.tokenn.stringValue = json["access_token"].stringValue
-                let token = json["access_token"].stringValue
+                if(self.stayLogged.state == 1) {
                 let defaults = UserDefaults.standard
-                defaults.setValue(token, forKey: defaultsKeys.accesstoken)
+                defaults.set(self.tokenn.stringValue, forKey: "Token")
                 defaults.synchronize()
-
+                }
+                else {
+                    print("user didn't want to save the token")
+                }
                 let status = response.response!.statusCode
 
                 switch(status) {
@@ -854,6 +923,19 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                     self.login.isHidden = true
                     self.login.isEnabled = false
                     self.login.state = 0
+                    self.subtoken.isEnabled = false
+                    self.tokenfield.isEnabled = false
+                    self.subtoken.isHidden = true
+                    self.tokenfield.isHidden = true
+                    self.valetRpin.isEnabled = true
+                    self.openPort.isEnabled = true
+                    self.valetPIN.isEnabled = true
+                    self.valetOnOff.isEnabled = true
+                    self.stCharg.isEnabled = true
+                    self.sCharg.isEnabled = true
+                    self.logOut.isHidden = false
+                    self.stndrd.isEnabled = true
+                    self.trip.isEnabled = true
                     self.getvehicle()
                     self.wakeup()
                     return
@@ -881,13 +963,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
             }
         }
         else {
-            print(token, "is something")
-            self.tokenn.stringValue = token!
-            self.login.isHidden = true
-            self.login.isEnabled = false
-            self.login.state = 0
-            self.getvehicle()
-            self.wakeup()
+            print(UserDefaults.standard.string(forKey: "Token"), " Is the token (else)")
         }
     }
 
@@ -920,7 +996,9 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                 let head = json["response"]["heading"]
                 let shift = json["response"]["shift_state"].stringValue
                 let speed = json["response"]["speed"].doubleValue
-                
+                if(shift == "") {
+                    self.Emerg.isEnabled = true
+                }
                 self.gMap.mainFrameURL = "https://www.google.ca/maps/place/\(lati.stringValue),\(longi.stringValue)/data=!3m1!1e3"
 
                 print(self.gMap.mainFrameURL)
@@ -967,8 +1045,6 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
             
             let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
                 let data = response.result.value
-                let json = JSON(data!)
-                print("wakeup", json)
         }
     }
         @IBAction func rData(_ sender: Any) {
@@ -1043,7 +1119,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
         let headers = [
             "Authorization": "Bearer \(token)"
         ]
-        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/data")
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/trunk_open?which_trunk=rear")
         
         let request = Alamofire.request(url!, method: .get, parameters: [:], encoding: URLEncoding.default, headers: headers).downloadProgress(queue: DispatchQueue.global(qos: .utility)) { progress in
             }
@@ -1052,9 +1128,7 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
                 return .success
             }
             .responseJSON { response in
-                let data = response.result.value
-                let json = JSON(data!)
-        print(json)
+
         
         }
 
@@ -1126,21 +1200,15 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
     }
 
 
-    
+
     @IBAction func summonFwd(_ sender: Any) {
-        let email = self.email.stringValue // Not working at all
-        let vehid = self.streamid.stringValue
         let vehhid = self.vehicleidd.stringValue
         let token = self.tokenn.stringValue
         print("Summfwd")
-        let request = NSMutableURLRequest(url: URL(string:"wss://streaming.vn.teslamotors.com/connect/\(vehhid)")!)
-        request.addValue("Basic \(token)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = "GET"
-        let ws = WebSocket(request: request as URLRequest)
-        ws.allowSelfSignedSSL = true
+        let ws = WebSocket("wss://streaming.vn.teslamotors.com/stream/\(vehhid)")
         let send : ()->() = {
             print("send: ")
-            ws.send("control:hello")
+            ws.ping()
         }
         ws.event.open = {
             print("opened")
@@ -1159,7 +1227,6 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
             }
         }
     }
-    
     
     @IBAction func cView(_ sender: Any) {
         getnewimg()
@@ -1199,12 +1266,14 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
         
     }
     @IBAction func batSet(_ sender: NSSlider) {
+        self.batLvl.stringValue = "\(sender.integerValue)%"
         let token = self.tokenn.stringValue
         let vehicleid = self.vehicleidd.stringValue
         let headers = [
             "Authorization": "Bearer \(token)"
         ]
-        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/set_charge_limit?percent=\(round(sender.doubleValue))%")!
+        print(sender.integerValue)
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/set_charge_limit?percent=\(sender.integerValue)")!
         print(url)
         let request = Alamofire.request(url, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
             let data = response.result.value
@@ -1216,18 +1285,291 @@ class login: NSViewController, NSTextFieldDelegate, ChartViewDelegate {
     
 
     @IBAction func ifHeld(_ sender: Any) {
-        self.email.stringValue = "-----------------@--------"
-        self.password.stringValue = "-------"
-        
+        self.email.stringValue = ""
+        self.password.stringValue = ""
+        self.welcome.rotate(byDegrees: CGFloat(Double.pi))
     }
     
     @IBAction func modelimgHeld(_ sender: Any) {
+        self.modelimg.isEnabled = true
         self.modelimg.image = #imageLiteral(resourceName: "ludicrous")
+        self.modelimg.rotate(byDegrees: CGFloat(Float.pi))
     }
     
     
+    @IBAction func valetOnOff(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        if(self.valetOnOff.selectedSegment == 0) {
+            if(self.valetPIN.stringValue != "") {
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/set_valet_mode?on=true&password=\(self.valetPIN.stringValue)")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+            self.valetOnOff.selectedSegment = 0
+        }
+            }
+            else {
+                self.valetPIN.placeholderString = "Enter PIN"
+            }
+        }
+        else if(self.valetOnOff.selectedSegment == 1) {
+            if(self.valetPIN.stringValue != "") {
+            let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/set_valet_mode?on=false&password=\(self.valetPIN.stringValue)")
+            
+            let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+                self.valetOnOff.selectedSegment = 1
+                let data = response.result.value
+                let json = JSON(data!)
+                print(json)
+            }
+            }
+            else {
+                self.valetPIN.placeholderString = "Enter PIN"
+            }
+        }
+        
+    }
+
+    @IBAction func valetRpin(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/reset_valet_pin")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+            let data = response.result.value
+            let json = JSON(data!)
+            print(json)
+        }
+
+    }
+    
+    @IBAction func openPort(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/charge_port_door_open")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+        }
+        
+
+    }
+    
+    @IBAction func sCharg(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/charge_start")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+        }
+        self.sCharg.isEnabled = false
+        self.stCharg.isEnabled = true
+        
+
+    }
+ 
+    @IBAction func stCharg(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/charge_stop")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+        }
+        
+        self.sCharg.isEnabled = true
+        self.stCharg.isEnabled = false
+
+    }
+    var time = Timer()
+
+    
+    @IBAction func Emerg(_ sender: Any) {
+        time = Timer.scheduledTimer(timeInterval: TimeInterval(3), target: self, selector: Selector("alm"), userInfo: nil, repeats: true)
+        self.stp.isEnabled = true
+    }
+    
+    @IBAction func stp(_ sender: Any) {
+        time.invalidate()
+        self.Emerg.isEnabled = true
+    }
+    
+    func alm() {
+        self.Emerg.isEnabled = false
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/flash_lights")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+            print(response)
+            print(response.response?.statusCode)
+            
+        }
+        let token1 = self.tokenn.stringValue
+        let vehicleid1 = self.vehicleidd.stringValue
+        let headers1 = [
+            "Authorization": "Bearer \(token1)"
+        ]
+        let url1 = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid1)/command/honk_horn")
+        
+        let request1 = Alamofire.request(url1!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers1).responseJSON { response in
+            
+        }
+        
+        
+    }
     
     
+    @IBAction func stndrd(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/charge_standard")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+            print(response)
+            print(response.response?.statusCode)
+            self.gc1()
+        }
+        
+    }
+    @IBAction func trip(_ sender: Any) {
+        let token = self.tokenn.stringValue
+        let vehicleid = self.vehicleidd.stringValue
+        let headers = [
+            "Authorization": "Bearer \(token)"
+        ]
+        let url = URL(string:"https://owner-api.teslamotors.com/api/1/vehicles/\(vehicleid)/command/charge_max_range")
+        
+        let request = Alamofire.request(url!, method: .post, parameters: [:], encoding: JSONEncoding.default, headers: headers).responseJSON { response in
+            print(response)
+            print(response.response?.statusCode)
+            self.gc1()
+        }
+        
+    }
+    let api = TeslaSwift()
+        @IBAction func summBkwd(_ sender: Any) {
+
+            var vehicle: Vehicle!
+            var streaming = false
+
+            if !streaming {
+                if let vehicle = vehicle {
+                    print("|||||||||", vehicle, "||||||||")
+                    self.api.openStream(vehicle: vehicle, dataReceived: {
+                        (event: StreamEvent?, error: Error?) in
+                        if let error = error {
+                            print(error.localizedDescription)
+                        } else {
+                            print("\nevent: \(event?.description ?? "")")
+                        }
+                    })
+                }
+            } else {
+                self.api.closeStream()
+            }
+            
+            streaming = !streaming
+    }
+    
+
+
+
+
+
+
+
+    
+    
+    
+    
+    @IBAction func logOut(_ sender: Any) {
+        UserDefaults.standard.set(nil, forKey: "Token")
+        UserDefaults.standard.synchronize()
+        self.degrees.isEnabled = false
+        self.vehName.isEnabled = false
+        self.lock.isEnabled = false
+        self.unlock.isEnabled = false
+        self.horn.isEnabled = false
+        self.flash.isEnabled = false
+        self.tempSet.isEnabled = false
+        self.tempOff.isEnabled = false
+        self.summonFwd.isEnabled = false
+        self.summonBkwd.isEnabled = false
+        self.summonStop.isEnabled = false
+        self.rData.isEnabled = false
+        self.password.isHidden = false
+        self.email.isHidden = false
+        self.progind.isHidden = false
+        self.subtoken.isEnabled = true
+        self.tokenfield.isEnabled = true
+        self.subtoken.isHidden = false
+        self.tokenfield.isHidden = false
+        self.logOut.isHidden = true
+        self.gMap.mainFrameURL = ""
+        self.vehimg.image = nil
+        self.cView.isEnabled = false
+        self.modelimg.image = nil
+        self.outD.clear()
+        self.inD.clear()
+        self.batSet.doubleValue = 0
+        self.Graph.clear()
+        self.pano.isEnabled = false
+        self.rStart.isEnabled = false
+        self.vehName.stringValue = ""
+        self.tokenn.stringValue = ""
+        self.alat.stringValue = ""
+        self.curl.stringValue = ""
+        self.carType.stringValue = ""
+        self.degrees.stringValue = ""
+        self.email.stringValue = ""
+        self.password.stringValue = ""
+        self.email.isEditable = true
+        self.password.isEditable = true
+        self.imgtext.stringValue = ""
+        self.vehModd.stringValue = ""
+        self.tokenfield.stringValue = ""
+        self.vehicleidd.stringValue = ""
+        self.lat.stringValue = ""
+        self.login.isHidden = false
+        self.login.isEnabled = true
+        self.valetOnOff.isEnabled = false
+        self.valetPIN.isEnabled = false
+        self.valetRpin.isEnabled = false
+        self.openPort.isEnabled = false
+        self.sCharg.isEnabled = false
+        self.stCharg.isEnabled = false
+        self.trip.isEnabled = false
+        self.stndrd.isEnabled = false
+        self.Emerg.isEnabled = false
+        self.stp.isEnabled = false
+        self.time.invalidate()
+        self.modelimg.isHidden = true
+        self.modelimg.isEnabled = true
+    }
 
 }
 

@@ -1,5 +1,25 @@
 # Tapp-Tesla-macOS
 
+Having troubles?
+
+1. "Application downloaded from an unknown source"
+Go to System Preferences -> Security [General], and click on "Open Anyway" in the bottom section of the pane.
+
+2. No data or messed up data
+  This can be caused by: 
+    A: Your access token has expired. Solution: Press Logout, then log back in.
+    B: You have more than one Tesla vehicle. Solution: Yell at the developer to include multi vehicle support.
+    C: Network connection issues. Solution: Connect to the internet.
+    D: If none of those apply, open an issue.
+
+3. Views reloading every millisecond/strobe effect in applications.
+
+  Close the app right away, I'm in the midst of getting to the bottom of this.
+
+4. "Move 'Tapp' to the trash"
+
+This is due to codesigning issues. You may have to download the xcproject file and build the application in xcode on your machine. 
+
 [Update 1.5]
 Login, Logout, new features, bug fixes
 

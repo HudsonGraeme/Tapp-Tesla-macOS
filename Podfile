@@ -1,7 +1,6 @@
 source 'https://github.com/CocoaPods/Specs.git'
 platform :osx, '10.12'
 use_frameworks!
-project 'Tapp.xcodeproj'
 target 'Tapp' do
     pod 'Alamofire'
     pod 'SwiftyJSON'

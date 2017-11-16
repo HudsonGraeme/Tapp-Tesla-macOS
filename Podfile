@@ -1,6 +1,6 @@
 source 'https://github.com/CocoaPods/Specs.git'
 platform :osx, '10.12'
-project 'app.xcodeproj'
+project 'Tapp.xcodeproj'
 use_frameworks!
 target 'Tapp' do
     pod 'Alamofire'

@@ -25,7 +25,7 @@ This is due to codesigning issues. You may have to download the xcproject file a
 Login, Logout, new features, bug fixes
 
 
-All commands currently use https json requests - updated to V1.2 which adds some fun easter eggs and bug fixes. Should be pretty self explanitory.
+All commands currently use https json requests - updated to V1.2 which adds some fun easter eggs and bug fixes. Should be pretty self explanatory.
 
 UserDefaults now saves the access_token for later use. V1.3 will include full Login/Logout features and more battery controls.
 

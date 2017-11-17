@@ -1,5 +1,5 @@
 # Tapp-Tesla-macOS
-
+[![Build Status](https://travis-ci.org/HudsonGraeme/Tapp-Tesla-macOS.svg?branch=master)](https://travis-ci.org/HudsonGraeme/Tapp-Tesla-macOS)
 Having troubles?
 
 1. "Application downloaded from an unknown source"

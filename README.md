@@ -7,11 +7,16 @@ Having troubles?
 Go to System Preferences -> Security [General], and click on "Open Anyway" in the bottom section of the pane.
 
 2. No data or messed up data
+  
   This can be caused by: 
-    A: Your access token has expired. Solution: Press Logout, then log back in.
-    B: You have more than one Tesla vehicle. Solution: Yell at the developer to include multi vehicle support.
-    C: Network connection issues. Solution: Connect to the internet.
-    D: If none of those apply, open an issue.
+    
+   A: Your access token has expired. Solution: Press Logout, then log back in.
+    
+   B: You have more than one Tesla vehicle. Solution: Yell at the developer to include multi vehicle support.
+    
+   C: Network connection issues. Solution: Connect to the internet.
+    
+   D: If none of those apply, open an issue.
 
 3. Views reloading every millisecond/strobe effect in applications.
 

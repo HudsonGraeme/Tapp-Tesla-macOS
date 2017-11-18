@@ -1,4 +1,4 @@
-# Tapp-Tesla-macOS
+# Tapp
 [![Build Status](https://travis-ci.org/HudsonGraeme/Tapp-Tesla-macOS.svg?branch=master)](https://travis-ci.org/HudsonGraeme/Tapp-Tesla-macOS)
 
 Having troubles?

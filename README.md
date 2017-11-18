@@ -24,7 +24,14 @@ Go to System Preferences -> Security [General], and click on "Open Anyway" in th
 
 4. "Move 'Tapp' to the trash"
 
-This is due to codesigning issues. You may have to download the xcproject file and build the application in xcode on your machine. 
+This is due to codesigning issues.
+Open Terminal
+
+    Type sudo xattr -cr /path/to/tapp.app
+    
+After -cr, drag and drop Tapp.app into the terminal window for an instant path.
+
+Hit enter and type in your password if propmted.
 
 [Update 1.5]
 Login, Logout, new features, bug fixes

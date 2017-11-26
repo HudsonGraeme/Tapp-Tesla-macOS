@@ -22,12 +22,12 @@ Go to System Preferences -> Security [General], and click on "Open Anyway" in th
 
   Close the app right away, I'm in the midst of getting to the bottom of this.
 
-4. "Move 'Tapp' to the trash"
+4. "Move 'Tapp.app' to the trash"
 
 This is due to codesigning issues.
 Open Terminal
 
-    Type sudo xattr -cr /path/to/tapp.app
+Type `sudo xattr -cr /path/to/tapp.app`
     
 After -cr, drag and drop Tapp.app into the terminal window for an instant path.
 

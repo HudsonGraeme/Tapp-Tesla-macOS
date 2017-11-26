@@ -29,7 +29,7 @@ Open Terminal
 
 Type `sudo xattr -cr /path/to/tapp.app`
     
-After -cr, drag and drop Tapp.app into the terminal window for an instant path.
+After `-cr`, drag and drop Tapp.app into the terminal window for an instant path.
 
 Hit enter and type in your password if propmted.
 

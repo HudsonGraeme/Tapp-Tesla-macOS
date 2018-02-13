@@ -1,4 +1,4 @@
-# Tapp
+# Tapp [Version 1]
 [![Build Status](https://travis-ci.org/HudsonGraeme/Tapp-Tesla-macOS.svg?branch=master)](https://travis-ci.org/HudsonGraeme/Tapp-Tesla-macOS)
 
 ### Deprecated ###
